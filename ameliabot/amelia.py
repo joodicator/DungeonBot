@@ -4,10 +4,10 @@ from utils.misc import *
 import xirclib
 import socket
 import cmd
+import importlib
 
-#plugins which are to be loaded.
-from plugins.fileserver import dcc3
-from plugins.standard import head
+#plugins which are always be loaded.
+import plugins.standard.head
 
 #This file contains settings like server address, nick etc
 from stuff import *
@@ -29,8 +29,10 @@ def main():
     cmd.install(poll)
 
     #It loads the plugins
-    dcc3.install(poll) 
-    head.install(poll)
+    plugins.standard.head.install(poll)
+    
+    for name in PLUGINS or []:
+        importlib.import_module(name).install(poll)
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -40,17 +42,12 @@ def main():
     server = Work(poll, sock)
 
     send_cmd(server, 'NICK %s' % NICK)
-    send_cmd(server, 'USER %s %s %s %s' % (USER, NAME, 'alpha', 'beta')) 
-    #send_cmd(server, 'JOIN #untwisted')
-    #send_cmd(server, 'JOIN #calculus')
-    send_cmd(server, 'JOIN ##blackhats')
-    send_cmd(server, 'JOIN #bott')
-
+    send_cmd(server, 'USER %s %s %s %s' % (USER, NAME, 'alpha', 'beta'))
+    for channel in CHANNELS or []:
+        send_cmd(server, 'JOIN %s' % channel)
 
     gear.mainloop()
 
 
-
 if __name__ == '__main__':
     main()
-
