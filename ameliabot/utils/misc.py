@@ -3,5 +3,3 @@ def send_msg(server, target, msg):
 
 def send_cmd(server, cmd):
     server.dump('%s\r\n' % cmd)
-
-

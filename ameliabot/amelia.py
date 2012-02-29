@@ -5,6 +5,7 @@ import xirclib
 import socket
 import cmd
 import importlib
+import sys
 
 #plugins which are always be loaded.
 import plugins.standard.head
@@ -14,6 +15,8 @@ from stuff import *
 
 
 def main():
+    self = sys.modules[__name__]
+
     #Initialize the basic objects
     gear = Gear()
     poll = Poll(gear)
@@ -29,10 +32,13 @@ def main():
     cmd.install(poll)
 
     #It loads the plugins
-    plugins.standard.head.install(poll)
-    
-    for name in PLUGINS or []:
-        importlib.import_module(name).install(poll)
+    def iplugins():
+        yield plugins.standard.head
+        for name in PLUGINS or []:
+            yield importlib.import_module(name)
+    for plugin in iplugins():
+        if hasattr(plugin, 'init'): plugin.init(self)
+        plugin.install(poll)
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

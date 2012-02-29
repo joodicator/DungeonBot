@@ -52,6 +52,7 @@ LOAD   = 7
 BUFFER = 8
 LOCAL  = 9
 RECV   = 10
+SENT   = 11
 
 class Gear(object):
     def __init__(self):
@@ -62,7 +63,7 @@ class Gear(object):
             self.update()
 
     def update(self):
-        for ind in self.pool[:]:
+        for ind in self.pool:
             ind.update()
 
 class Poll(Mode):
@@ -114,14 +115,22 @@ class Poll(Mode):
         if not self.isalive():
             return
 
-        resource = select(self.rlist, 
-                          self.wlist, 
-                          self.xlist, self.timeout)
-
+        resource = select(self.rlist, [], [])
         self.rsock, self.wsock, self.xsock = resource
 
         self.process_rsock()
+
+        resource = select([], self.wlist, [])
+        self.rsock, self.wsock, self.xsock = resource
+ 
         self.process_wsock()
+        
+        """
+        resource = select([], [], self.xlist)
+        self.rsock, self.wsock, self.xsock = resource
+        """
+
+ 
         self.process_xsock()
 
     def process_rsock(self):
@@ -169,12 +178,6 @@ class Work(socket):
         self.queue = self.queue + data
 
 
-    def deactive(self, poll):
-        pass
-    
-    def active(self, poll):
-        pass
-
     def destroy(self):
         self.poll.rlist.remove(self)
         self.poll.wlist.remove(self)
@@ -185,45 +188,6 @@ class Fish(Work, Mode):
         Work.__init__(self, poll, sock)
         Mode.__init__(self)
 
-class Shell:
-    def __init__(self, poll, sock):
-        self.server = False
-
-    def update(self):
-        resource = select([self], 
-                          [self], 
-                          [], self.timeout)
-
-        self.rsock, self.wsock, self.xsock = resource
-
-        if self.rsock:
-            if self.server:
-                self.handle_accept()
-
-        if self.wsock:
-            self.handle_write()
-
-        if self.xsock:
-            self.handle_exc
-
-    def recv(self, size):
-            
-        pass
-
-    def handle_write(self):
-        pass
-
-    def handle_read(self):
-        pass
-
-    def handle_close(self):
-        pass
-
-    def handle_error(self):
-        pass
-
-    def handle_exc(self):
-        pass
 
 class Mac(socket, Mode):
     def __init__(self, gear, sock, timeout=0):
@@ -251,7 +215,7 @@ class Mac(socket, Mode):
     def update(self):
         resource = select([self], 
                           [self], 
-                          [self], self.timeout)
+                          [self])
 
         self.rsock, self.wsock, self.xsock = resource
 
@@ -265,26 +229,6 @@ class Mac(socket, Mode):
     def destroy(self):
         self.gear.pool.remove(self)
 
-class Hub(socket, Mode):
-    def __init__(self, poll, sock):
-        Work.__init__(self, poll, sock)
-
-        self.send_list = []
-        self.recv_list = []
-        self.outgoing = None
-        self.incoming = None
-
-    def update(self):
-        pass
-
-    def send_file(self, filename):
-        pass
-
-    def recv_file(self, filename, size_file=-1):
-        pass
-
-    def stop(self):
-        pass
 
 
 __all__ = [
@@ -303,6 +247,7 @@ __all__ = [
             'ACCEPT',
             'hold',
             'sign',
-            'Mac'
+            'Mac',
+            'SENT'
           ]
 
