@@ -52,19 +52,53 @@ LOAD   = 7
 BUFFER = 8
 LOCAL  = 9
 RECV   = 10
-SENT   = 11
 
 class Gear(object):
-    def __init__(self):
-        self.pool = []
+    def __init__(self, timeout=None):
+        self.timeout = timeout
 
+        self.rlist = []
+        self.wlist = []
+        self.xlist = []
+
+        self.SIZE = 1024
+
+ 
     def mainloop(self):
         while True:
             self.update()
 
     def update(self):
-        for ind in self.pool:
-            ind.update()
+        r, w, x = [], [], []
+
+        rmap = lambda obj: obj.is_read
+        wmap = lambda obj: obj.is_write or obj.is_dump
+        xmap = lambda obj: obj.is_write and obj.is_read
+        
+        r = filter(rmap, self.rlist)
+        w = filter(wmap, self.wlist)
+        x = filter(xmap, self.xlist)
+
+        resource = select(r , w , x, self.timeout)
+
+        self.rsock, self.wsock, self.xsock = resource
+
+        self.process_rsock()
+        self.process_wsock()
+        self.process_xsock()
+
+    def process_rsock(self):
+        for ind in self.rsock:
+            ind.poll.drive(READ, ind)
+
+    def process_wsock(self):
+        for ind in self.wsock:
+            ind.poll.drive(WRITE, ind)
+
+    def process_xsock(self):
+        for ind in self.xsock:
+            ind.poll.drive(EXC, ind)
+ 
 
 class Poll(Mode):
     """ 
@@ -82,77 +116,33 @@ class Poll(Mode):
 
         For a detailed example see /sample/sandbox/box.py
         Where it uses ';' as terminator.
-    
-        The timeout param for the constructor is passed to select.select.
-        It determins how long select will wait for a socket being ready.
     """
-    #receives protocol
-    def __init__(self, gear, timeout=0):
+    def __init__(self, gear):
         Mode.__init__(self, self.default)
 
         self.gear = gear
-        self.timeout = timeout
-
-        self.rlist = []
-        self.wlist = []
-        self.xlist = []
-        self.slist = []
-
-        self.SIZE = 1024
-
         """ Adding itself to the gear """
-        gear.pool.append(self)
 
-    def isalive(self):
-        """ 
-            It returns True if self.rlist, self.wlist, self.xlist 
-            holds some socket which is actually being processed.
-        """
-
-        return self.rlist or self.wlist or self.xlist
-
-    def update(self):
-        if not self.isalive():
-            return
-
-        resource = select(self.rlist, [], [])
-        self.rsock, self.wsock, self.xsock = resource
-
-        self.process_rsock()
-
-        resource = select([], self.wlist, [])
-        self.rsock, self.wsock, self.xsock = resource
- 
-        self.process_wsock()
-        
-        """
-        resource = select([], [], self.xlist)
-        self.rsock, self.wsock, self.xsock = resource
-        """
-
- 
-        self.process_xsock()
-
-    def process_rsock(self):
-        for ind in self.rsock:
-            self.drive(READ, ind)
-
-    def process_wsock(self):
-        for ind in self.wsock:
-            self.drive(WRITE, ind)
-
-    def process_xsock(self):
-        for ind in self.xsock:
-            self.drive(EXC, ind)
-   
     def default(self, event, child=None, *args, **kwargs):
         if isinstance(child, Fish):
             child.drive(event, child, *args, **kwargs)
 
 
 class Work(socket):
-    def __init__(self, poll, sock):
+    def __init__(self, poll, sock, is_read=True, is_write=False):
         socket.__init__(self, _sock=sock)
+
+        self.is_read  = is_read
+
+        """ To use yield hold(obj, WRITE)
+            you need to pass is_write = True
+            to tell the core to add this socket instance
+            to the list of selectable objects for writting.
+        """
+        self.is_write = is_write
+
+        """ Initially we aren't dumping anything. """
+        self.is_dump  = False
 
         self.poll = poll
         self.sock = sock
@@ -161,9 +151,9 @@ class Work(socket):
         self.server = False
 
         #Registering itself.
-        poll.rlist.append(self)
-        poll.wlist.append(self)
-        poll.xlist.append(self)
+        poll.gear.rlist.append(self)
+        poll.gear.wlist.append(self)
+        poll.gear.xlist.append(self)
 
         self.BLOCK = 1024
         self.SIZE = 1024
@@ -175,63 +165,31 @@ class Work(socket):
         self.queue = ''
 
     def dump(self, data):
-        self.queue = self.queue + data
+        """ If you are going to use send 
+            then you can't use dump.
+            Otherwise you might have some odd behavior.
 
+        """
+        self.queue   = self.queue + data
+        self.is_dump = True
 
     def destroy(self):
-        self.poll.rlist.remove(self)
-        self.poll.wlist.remove(self)
-        self.poll.xlist.remove(self)
+        self.poll.gear.rlist.remove(self)
+        self.poll.gear.wlist.remove(self)
+        self.poll.gear.xlist.remove(self)
 
 class Fish(Work, Mode):
-    def __init__(self, poll, sock):
-        Work.__init__(self, poll, sock)
-        Mode.__init__(self)
+    def __init__(self, poll, sock, is_read=True, is_write=False, default=None):
+        Work.__init__(self, poll, sock, is_read, is_write)
+        Mode.__init__(self, default)
 
 
-class Mac(socket, Mode):
-    def __init__(self, gear, sock, timeout=0):
-        socket.__init__(self, _sock=sock)
-        Mode.__init__(self)
-        self.server = False
+class Mac(Fish):
+    def __init__(self, gear, sock, is_read=True, is_write = False, default=None):
         self.gear = gear
-        self.timeout = timeout
-        #I should rmeove this method
-        self.sock = sock
+        Fish.__init__(self, self, sock, is_read, is_write, default)
 
-        gear.pool.append(self)
-        self.BLOCK = 1024
-        self.SIZE = 1024
-
-        #The socket stack.
-        self.stack = ''
-        self.data = ''
-
-        self.queue = ''
-
-    def dump(self, data):
-        self.queue = self.queue + data
-
-    def update(self):
-        resource = select([self], 
-                          [self], 
-                          [self])
-
-        self.rsock, self.wsock, self.xsock = resource
-
-        if self.rsock:
-            self.drive(READ, self)
-        if self.wsock:
-            self.drive(WRITE, self)
-        if self.xsock:
-            self.drive(EXC, self)
-
-    def destroy(self):
-        self.gear.pool.remove(self)
-
-
-
-__all__ = [
+_all__ = [
             'Work', 
             'Poll', 
             'Fish',
@@ -247,7 +205,6 @@ __all__ = [
             'ACCEPT',
             'hold',
             'sign',
-            'Mac',
-            'SENT'
+            'Mac'
           ]
 

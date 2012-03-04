@@ -1,0 +1,18 @@
+"name",                                      "size",    "danger", "mystery"
+
+"The Kobold Warren",                         "small",   1,        1
+"The Abandoned Mine",                        "small",   1,        1
+"The Goblin Barrow",                         "small",   2,        1
+"The Castle of Farnmoore",                   "small",   3,        1
+"The Forsaken Shrine",                       "small",   1,        2
+"The Ruins of Wellhaven",                    "small",   1,        3
+
+"The Chambers of Blood",                     "medium",  2,        1
+"The Vaults of Chaos",                       "medium",  1,        2
+"The Secret Caverns of the Undead Warlord",  "medium",  1,        1
+
+"The Catacombs of the Vampire Queen",        "large",   2,        1
+"The Labyrinth of Untold Horror",            "large",   1,        2
+"The Pit of Inexorable Evil",                "large",   1,        1
+
+"The Abyssal Depths",                        "huge",    2,        2

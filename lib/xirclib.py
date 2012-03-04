@@ -60,4 +60,3 @@ def extract_ctcp(*args):
 
 def patch(*args):
     yield sign('DCC %s' % args[5],  *(args[:5] + args[6:]))
-

@@ -1,14 +1,15 @@
-from untwisted.network import BUFFER
+from untwisted.network import BUFFER, CLOSE
 
 def install(poll):
     poll.link('PING', pong)
-    poll.link(BUFFER, log)
+    poll.link(CLOSE, handle_close)
 
 def pong(work, prefix, server):
     reply = 'PONG :%s\r\n' % server
     work.dump(reply)
-    print('PING PONG')
 
-def log(work, stack):
-    print(stack)
+def handle_close(server):
+    server.close()
+    server.destroy()
+
 
