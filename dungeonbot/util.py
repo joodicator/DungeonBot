@@ -1,4 +1,5 @@
 from types import MethodType as instancemethod
+from types import ClassType as classobj
 from collections import namedtuple
 from itertools import *
 from functools import *
@@ -22,11 +23,18 @@ def table(path, name='table_row'):
         return imap(head, imap(eval, lines))
 
 # Executes a file of Python statements, returning the resulting local
-# dictionary.
+# dictionary, in which any top-level classes have been changed to dicts.
 def fdict(path):
-    locals = dict()
-    execfile(path, dict(), locals)
-    return locals
+    thedict = dict()
+    execfile(path, dict(), thedict)
+    return {k:cdict(v) for (k,v) in thedict.iteritems()}
+
+# If the given object is a class, returns a copy of its dictionary with any
+# __scored__ names removed, otherwise returns the same object unchanged.
+def cdict(obj):
+    if not isinstance(obj, (type, classobj)): return obj
+    return {k:v for (k,v) in obj.__dict__.iteritems()
+            if not re.match('__.*__', k)}
 
 # A LinkSet maintains a list of bindings between events and event handlers,
 # providing some convenience methods for changing and using this list.

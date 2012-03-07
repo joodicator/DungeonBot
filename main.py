@@ -1,5 +1,5 @@
 import sys, os.path
-for dir in 'ameliabot', 'dungeonbot', 'lib', 'conf':
+for dir in 'ameliabot', 'dungeonbot', 'lib':
     sys.path.append(os.path.join(sys.path[0], dir))
 
 conf = {
@@ -11,7 +11,7 @@ conf = {
     'channels': ['#DungeonBot'],
     'plugins':  ['message', 'control', 'dungeon']
 }
-execfile('bot.txt', dict(), conf)
+execfile('conf/bot.txt', conf)
 
 from amelia import AmeliaBot
 AmeliaBot(conf).mainloop()

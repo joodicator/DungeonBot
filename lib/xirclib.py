@@ -1,5 +1,6 @@
-from untwisted.utils.common import shrug, charset
+from untwisted.utils.common import shrug, append
 from untwisted.network import *
+from untwisted.event import *
 
 import re
 
@@ -17,7 +18,7 @@ CTCP_REG = re.compile(CTCP_STR)
 empty = lambda data: data if data else ''
 
 def install(poll):
-    poll.link(LOAD, charset)
+    poll.link(DATA, append)
     poll.link(BUFFER, shrug)
     poll.link(FOUND, main)
     poll.link('PRIVMSG', extract_ctcp) 
@@ -60,3 +61,4 @@ def extract_ctcp(*args):
 
 def patch(*args):
     yield sign('DCC %s' % args[5],  *(args[:5] + args[6:]))
+

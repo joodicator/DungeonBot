@@ -1,4 +1,4 @@
-from untwisted.network import BUFFER, CLOSE
+from untwisted.event import BUFFER, CLOSE
 
 def install(poll):
     poll.link('PING', pong)

@@ -1,4 +1,4 @@
-from untwisted.mode import sign
+from untwisted.magic import sign
 from util import LinkSet, ID
 import re
 

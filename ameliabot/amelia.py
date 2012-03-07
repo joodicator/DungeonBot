@@ -1,11 +1,13 @@
-import stdlog as std
-from untwisted.network import *
-from utils.misc import *
-import xirclib
-from socket import *
 from importlib import import_module
+from socket import *
 import sys
+
 from plugins.standard import head
+from untwisted.core import gear
+from untwisted.network import Mac
+import utils.misc
+import stdlog as std
+import xirclib
 
 default_conf = {
     'server':   'irc.freenode.net',
@@ -19,8 +21,8 @@ default_conf = {
 }
 
 class AmeliaBot(Mac):
-    send_cmd = send_cmd
-    send_msg = send_msg
+    send_cmd = utils.misc.send_cmd
+    send_msg = utils.misc.send_msg
 
     def __init__(self, conf=None):
         # Load configuration
@@ -31,7 +33,7 @@ class AmeliaBot(Mac):
         sock = socket(AF_INET, SOCK_STREAM)
         address = gethostbyname(self.conf['server'])
         sock.connect((address, self.conf['port']))
-        Mac.__init__(self, Gear(), sock)#, default=self.default)
+        Mac.__init__(self, sock)#, default=self.default)
         
         # Initialise events
         std.install(self)
@@ -62,7 +64,7 @@ class AmeliaBot(Mac):
             self.send_cmd('JOIN %s' % channel)
 
     def mainloop(self):
-        return self.gear.mainloop()
+        return gear.mainloop()
     
     def default(self, event, *args, **kwds):
         if type(event) == int: return

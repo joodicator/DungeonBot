@@ -1,35 +1,66 @@
 from untwisted.network import *
 from untwisted.utils.common import read, write
+from untwisted.event import *
 
 ibuf = ''
 obuf = ''
 TERM = '\r\n'
 
-def install(poll):
-    poll.link(READ, update)
-    poll.link(WRITE, flush)
+def install(obj):
+    """ 
+        If you don't want bufferizaiton with stack
+        just pass lambda obj: None
+    """
 
-def update(work):
-    if work.server:
-        yield sign(ACCEPT, work)
+    obj.link(READ, update)
+    obj.link(WRITE, flush)
+
+def update(obj):
+    if obj.server:
+        #if this object is a socket
+        #server and it is ready to be read
+        #then some host connected
+        yield sign(ACCEPT, obj)
     else:
-        work.data = read(work)
-        ilog(work.data)
-        work.stack = work.stack + work.data
-        """ If the connection was closed. """
-        if not work.data:
-            yield sign(CLOSE, work)
+        #update the obj.data variable
+        #so clients of this instance
+        #can use it
+        obj.data = read(obj)
+        ilog(obj.data)
+        if not obj.data:
+            #socket returns '' in case of
+            #the host having closed
+            yield sign(CLOSE, obj)
         else:
-            yield sign(LOAD, work)
+            #the LOAD event means 
+            #we have received the data
+            yield sign(LOAD, obj)
 
+            #we need this event in order
+            #to make charset cohercion
+            #and use the append callback
+            #to glue the incoming data
+            yield sign(DATA, obj)
 
-def flush(work):
-    size = write(work, work.queue[:work.BLOCK])
-    olog(work.queue[:size])
-    work.queue = work.queue[size:]
+def flush(obj):
+    """
+        This function dumps data in blocks through
+        the socket
+    """
+    #sends data in blocks
+    size = write(obj, obj.queue[:obj.BLOCK])
+    olog(obj.queue[:size])
 
-    if not work.queue:
-        work.is_dump = False
+    #slices the string leaving
+    #what remains to send
+    obj.queue = obj.queue[size:]
+
+    if not obj.queue and obj.is_dump:
+        #if obj.queue is empty and obj.is_dump
+        #is set true then we have sent
+        #all data
+        obj.is_dump = False
+        yield sign(DUMPED, obj)
 
 def ilog(data):
     global ibuf

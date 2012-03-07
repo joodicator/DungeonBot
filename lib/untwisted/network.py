@@ -19,114 +19,26 @@
 
 """ The untwisted core. """
 
-from select import select
+
 from untwisted.mode import *
+from untwisted.dispatch import *
+from untwisted.magic import *
 from socket import *
+from core import gear
 
-""" 
-    These are the mainstream events. 
-    If a given work is ready to be read then use READ.
-    For writting use WRITE.
-    If a given exception occured in one of the works/sockets then use ERR.
-    If a given work/socket was closed use CLOSE.
-    If it is a socket server initialized with
-
-    work = Work(poll, sock)
-    work.server = True
-
-    then you use ACCEPT.
-
-"""
-
-
-#These events are never handled by
-#a call to Mod.drive(data)
-
-READ   = 1
-WRITE  = 2
-EXC    = 3
-CLOSE  = 4
-ACCEPT = 5
-FOUND  = 6
-LOAD   = 7
-BUFFER = 8
-LOCAL  = 9
-RECV   = 10
-
-class Gear(object):
-    def __init__(self, timeout=None):
-        self.timeout = timeout
-
-        self.rlist = []
-        self.wlist = []
-        self.xlist = []
-
-        self.SIZE = 1024
-
- 
-    def mainloop(self):
-        while True:
-            self.update()
-
-    def update(self):
-        r, w, x = [], [], []
-
-        rmap = lambda obj: obj.is_read
-        wmap = lambda obj: obj.is_write or obj.is_dump
-        xmap = lambda obj: obj.is_write and obj.is_read
-        
-        r = filter(rmap, self.rlist)
-        w = filter(wmap, self.wlist)
-        x = filter(xmap, self.xlist)
-
-        resource = select(r , w , x, self.timeout)
-
-        self.rsock, self.wsock, self.xsock = resource
-
-        self.process_rsock()
-        self.process_wsock()
-        self.process_xsock()
-
-    def process_rsock(self):
-        for ind in self.rsock:
-            ind.poll.drive(READ, ind)
-
-    def process_wsock(self):
-        for ind in self.wsock:
-            ind.poll.drive(WRITE, ind)
-
-    def process_xsock(self):
-        for ind in self.xsock:
-            ind.poll.drive(EXC, ind)
- 
+def default(event, child=None, *args):
+    if isinstance(child, Mode):
+        child.drive(event, child, *args)
 
 class Poll(Mode):
-    """ 
-        This class holds a pool of sockets/works 
-        which are sharing a same reader. 
-
-        The reader callback works as a terminator.
-        It returns True or False.
-        If it returns True it means it was found a terminator.
-
-        Using this model makes things loose.
-        Which permits you even use variable terminators.
-      
-        ***
-
-        For a detailed example see /sample/sandbox/box.py
-        Where it uses ';' as terminator.
-    """
-    def __init__(self, gear):
-        Mode.__init__(self, self.default)
-
+    def __init__(self):
+        Mode.__init__(self, default)
         self.gear = gear
-        """ Adding itself to the gear """
 
-    def default(self, event, child=None, *args, **kwargs):
-        if isinstance(child, Fish):
-            child.drive(event, child, *args, **kwargs)
-
+class Hook(Dispatch):
+    def __init__(self):
+        Dispatch.__init__(self, default)
+        self.gear = gear
 
 class Work(socket):
     def __init__(self, poll, sock, is_read=True, is_write=False):
@@ -134,7 +46,8 @@ class Work(socket):
 
         self.is_read  = is_read
 
-        """ To use yield hold(obj, WRITE)
+        """ 
+            To use yield hold(obj, WRITE)
             you need to pass is_write = True
             to tell the core to add this socket instance
             to the list of selectable objects for writting.
@@ -151,9 +64,9 @@ class Work(socket):
         self.server = False
 
         #Registering itself.
-        poll.gear.rlist.append(self)
-        poll.gear.wlist.append(self)
-        poll.gear.xlist.append(self)
+        gear.rlist.append(self)
+        gear.wlist.append(self)
+        gear.xlist.append(self)
 
         self.BLOCK = 1024
         self.SIZE = 1024
@@ -174,37 +87,31 @@ class Work(socket):
         self.is_dump = True
 
     def destroy(self):
-        self.poll.gear.rlist.remove(self)
-        self.poll.gear.wlist.remove(self)
-        self.poll.gear.xlist.remove(self)
+        gear.rlist.remove(self)
+        gear.wlist.remove(self)
+        gear.xlist.remove(self)
 
 class Fish(Work, Mode):
-    def __init__(self, poll, sock, is_read=True, is_write=False, default=None):
+    def __init__(self, poll, sock, is_read=True, is_write=False):
         Work.__init__(self, poll, sock, is_read, is_write)
-        Mode.__init__(self, default)
-
+        Mode.__init__(self)
 
 class Mac(Fish):
-    def __init__(self, gear, sock, is_read=True, is_write = False, default=None):
-        self.gear = gear
-        Fish.__init__(self, self, sock, is_read, is_write, default)
+    def __init__(self, sock, is_read=True, is_write = False):
+        Fish.__init__(self, self, sock, is_read, is_write)
+
+
 
 _all__ = [
             'Work', 
             'Poll', 
             'Fish',
-            'Gear', 
-            'READ', 
-            'WRITE',
-            'EXC', 
-            'FOUND',
-            'LOAD', 
-            'BUFFER', 
             'sign',
-            'CLOSE',
-            'ACCEPT',
             'hold',
             'sign',
-            'Mac'
+            'Mac',
+            'Hook',
+            'gear'
           ]
+
 
