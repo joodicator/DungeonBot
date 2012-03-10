@@ -58,7 +58,7 @@ def _exec(bot, id, target, args):
 def _load(bot, id, target, args):
     try:
         mod = import_module(args)
-        mod.install(bot)
+        if hasattr(mod, 'install'): mod.install(bot)
     except ImportError as e:
         echo(bot, id, target, repr(e))
     echo(bot, id, target, 'Done.')
@@ -67,7 +67,8 @@ def _load(bot, id, target, args):
 @admin
 def _unload(bot, id, target, args):
     try:
-        sys.modules[args].uninstall(bot)
+        mod = sys.modules[args]
+        if hasattr(mod, 'uninstall'): mod.uninstall(bot)
     except KeyError as e:
         echo(bot, id, target, repr(e))
     echo(bot, id, target, 'Done.')
@@ -76,9 +77,10 @@ def _unload(bot, id, target, args):
 @admin
 def _reload(bot, id, target, args):
     try:
-        sys.modules[args].uninstall(bot)
-        reload(sys.modules[args])
-        sys.modules[args].install(bot)
+        mod = sys.modules[args]
+        if hasattr(mod, 'uninstall'): mod.uninstall(bot)
+        reload(mod)
+        if hasattr(mod, 'install'): mod.install(bot)
     except KeyError as e:
         echo(bot, id, target, repr(e))
     echo(bot, id, target, 'Done.')

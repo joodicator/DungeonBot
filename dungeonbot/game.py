@@ -1,11 +1,18 @@
 from util import LinkSet, table, fdict, bind
 from itertools import *
+import re
 
 dungeons = table('conf/dungeons.txt', 'dungeon_spec')
 conf = fdict('conf/general.txt')
 
+def normalise_name(name):
+    name = name.strip()
+    name = re.sub(r'[\x00-\x1F]', '', name)
+    name = re.sub(r'\s+', ' ', name)
+    return name
+
 class Game(object):
-    __slots__ = 'install, uninstall, chan, heroes, turn, rounds'
+    __slots__ = 'install', 'uninstall', 'chan', 'heroes', 'turn', 'rounds'
     conf = conf['game']
     link = LinkSet()
     
@@ -32,19 +39,24 @@ class Game(object):
             return self.msg(bot, '%s: you are already playing as %s.',
                 nick, name)
         
-        name = args.strip()
+        name = normalise_name(args)
         for (onick, ohero) in self.heroes.iteritems():
-            if ohero.name().upper() != name.upper(): continue
+            if ohero.name.upper() != name.upper(): continue
             return self.msg(bot, '%s: %s is already being played by %s.',
                 nick, ohero.name, onick)
         
         self.heroes[nick] = Hero(name)
         self.turn.append(nick)
-        self.msg(bot, '%s joins the game as %s.', nick, name)
+        self.msg(bot, '%s joins the game.', name)
     
     @link('!retire')
     def retire(self, bot, id, args):
-        pass
+        nick = id.nick
+        if nick not in self.heroes: return
+        if nick in self.turn: self.turn.remove(nick)
+        hero = self.heroes[nick]
+        del self.heroes[nick]
+        self.msg(bot, '%s retires from the game.', hero.name)
 
     @link('!explore')
     def explore(self, bot, id, args):
@@ -71,7 +83,7 @@ class Game(object):
         pass
     
 class Dungeon(object):
-    __slots__ = 'spec, danger, mystery, level'
+    __slots__ = 'spec', 'danger', 'mystery', 'level'
     base = conf['dungeon_base']
     sizes = conf['dungeon_sizes']
     
@@ -83,7 +95,7 @@ class Dungeon(object):
 
 
 class Hero(object):
-    __slots__ = 'name, fight_skill, fight_exp, lore_skill, lore_exp'
+    __slots__ = 'name', 'fight_skill', 'fight_exp', 'lore_skill', 'lore_exp'
     conf = conf['hero']
     
     def __init__(self, name):

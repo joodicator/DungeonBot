@@ -58,7 +58,7 @@ class LinkSet(object):
     
     # Uninstalls the current event bindings from the given Mode instance.
     def uninstall(self, mode):
-        for pair in self.links: mode.unlink(*link)
+        for link in self.links: mode.unlink(*link)
     
     # Maps the given function over the current bindings, returning a pair of
     # functions that respectively install and uninstall the resulting bindings.
