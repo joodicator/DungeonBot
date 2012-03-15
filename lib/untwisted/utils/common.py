@@ -14,14 +14,6 @@ def yuck(obj, stack, size=1024):
 def charset(obj, name='utf-8'):
     obj.data = obj.data.decode(name, 'replace')
 
-def read(obj):
-    """ This function can be substituted """
-    return obj.recv(obj.SIZE)
-
-def write(obj, data):
-    """ This function can be substituted """
-    return obj.send(data)
-
 def append(obj):
     """ 
         This function appends obj.data to obj.stack.

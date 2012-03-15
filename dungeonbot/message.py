@@ -6,7 +6,7 @@ link, install, uninstall = LinkSet().triple()
 
 @link('PRIVMSG')
 def privmsg(bot, nick, user, host, target, msg, *args):
-    msg = re.sub('^:', '', msg)
+#    msg = re.sub('^:', '', msg) # not needed since xirclib updated
     if target == bot.nick: target = None
     id = ID(nick, user, host)
     yield sign('MESSAGE', bot, id, target, msg)

@@ -1,4 +1,8 @@
+import UserDict
+
 import traceback
+
+void = lambda *args: None
 
 def chain(poll, seq):
     try:
@@ -29,5 +33,8 @@ def glue(*args):
 def arg(*args, **kwargs):
     return (args, kwargs)
 
+class Stop(Exception):
+    pass
 
-
+class Kill(Exception):
+    pass

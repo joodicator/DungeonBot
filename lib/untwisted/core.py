@@ -20,7 +20,7 @@ class Gear(object):
         r, w, x = [], [], []
 
         rmap = lambda obj: obj.is_read
-        wmap = lambda obj: obj.is_write or obj.is_dump
+        wmap = lambda obj: obj.is_write or obj.queue
         xmap = lambda obj: obj.is_write and obj.is_read
         
         r = filter(rmap, self.rlist)

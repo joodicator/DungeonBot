@@ -10,19 +10,23 @@ RFC_REG = re.compile(RFC_STR)
 PREFIX_STR = "(?P<nick>.+)!(?P<user>.+)@(?P<host>.+)"
 PREFIX_REG = re.compile(PREFIX_STR)
 
-ARGUMENT_STR = "[^: ]+|:.+"
+#ARGUMENT_STR = "[^: ]+|:.+"
+
+#this regex was suggested by joo
+ARGUMENT_STR = "(?<=:).*|[^: ]+"
 ARGUMENT_REG = re.compile(ARGUMENT_STR)
+
 CTCP_STR = "[^ ]+"
 CTCP_REG = re.compile(CTCP_STR)
 
 empty = lambda data: data if data else ''
 
-def install(poll):
-    poll.link(DATA, append)
-    poll.link(BUFFER, shrug)
-    poll.link(FOUND, main)
-    poll.link('PRIVMSG', extract_ctcp) 
-    poll.link('DCC', patch) 
+def install(obj):
+    obj.link(DATA, append)
+    obj.link(BUFFER, shrug)
+    obj.link(FOUND, main)
+    obj.link('PRIVMSG', extract_ctcp) 
+    obj.link('DCC', patch) 
 
 def main(work, data):
     field    = re.match(RFC_REG, data)

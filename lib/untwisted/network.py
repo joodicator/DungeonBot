@@ -55,7 +55,6 @@ class Work(socket):
         self.is_write = is_write
 
         """ Initially we aren't dumping anything. """
-        self.is_dump  = False
 
         self.poll = poll
         self.sock = sock
@@ -84,17 +83,31 @@ class Work(socket):
 
         """
         self.queue   = self.queue + data
-        self.is_dump = True
 
     def destroy(self):
         gear.rlist.remove(self)
         gear.wlist.remove(self)
         gear.xlist.remove(self)
 
+""" These are exotic names for classes.
+    Howevr, the intention isn't being meaningful
+    since we have docs for it.
+    The aim is being as succinct as possible.
+"""
+
 class Fish(Work, Mode):
     def __init__(self, poll, sock, is_read=True, is_write=False):
         Work.__init__(self, poll, sock, is_read, is_write)
         Mode.__init__(self)
+
+class Shell(Work, Dispatch):
+    def __init__(self, poll, sock, is_read=True, is_write=False):
+        Work.__init__(self, poll, sock, is_read, is_write)
+        Dispatch.__init__(self)
+
+class Shark(Shell):
+    def __init__(self, poll, sock, is_read=True, is_write=False):
+        Shark.__init__(self, self, sock, is_read, is_write)
 
 class Mac(Fish):
     def __init__(self, sock, is_read=True, is_write = False):
@@ -108,7 +121,12 @@ _all__ = [
             'Fish',
             'sign',
             'hold',
+            'wait',
+            'Shell',
+            'Shark',
             'sign',
+            'Stop',
+            'Kill',
             'Mac',
             'Hook',
             'gear'

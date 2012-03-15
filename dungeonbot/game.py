@@ -29,7 +29,7 @@ class Game(object):
     
     @link('!help')
     def help(self, bot, id, args):
-        self.msg(bot, 'I only help those who help themselves.')
+        self.msg(bot, 'Help yourself.')
 
     @link('!join')
     def join(self, bot, id, args):

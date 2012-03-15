@@ -16,21 +16,25 @@ DATA   = get_event()
 LOAD   = get_event()
 DATA   = get_event()
 BUFFER = get_event()
-LOCAL  = get_event()
-RECV   = get_event()
 DUMPED = get_event()
+RECV_ERR = get_event()
+SEND_ERR = get_event()
 
-_all__ = [
+__all__ = [
             'get_event',
             'READ', 
             'WRITE',
             'EXC', 
+            'CLOSE',
             'FOUND',
             'LOAD', 
             'BUFFER', 
-            'sign',
+            'DATA',
             'CLOSE',
+            'RECV_ERR',
+            'SEND_ERR',
             'ACCEPT',
+            'DUMPED'
           ]
 
 
