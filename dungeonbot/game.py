@@ -1,4 +1,4 @@
-from util import LinkSet, table, fdict, bind
+from util import LinkSet, table, fdict, bind, after
 from itertools import *
 import re
 
@@ -27,14 +27,48 @@ class Game(object):
     def msg(self, bot, msg, *args):
         bot.send_msg(self.chan, msg % args)
     
+    def hero(func):
+        def hero_decd(self, bot, id, args):
+            if id.nick not in self.heroes: return False
+            return func(self, bot, id, args, self.heroes[id.nick])
+        return hero_decd
+    
+    @after(hero)
+    def hero_turn(func):
+        def turn_decd(self, bot, id, args, hero):
+            if not(self.turn and self.turn[0] == hero): return False
+            res = func(self, bot, id, args, hero)
+            if res is not False: self.end_turn(bot)
+            return res
+        return turn_decd
+    
+    def end_turn(self, bot):
+        self.turn.pop(0)
+        if self.turn:
+            self.start_turn(bot)
+        else:
+            self.end_round(bot)
+    
+    def start_turn(self, bot):
+        self.msg(bot, 'It is %s\'s turn.', self.turn[0].name)
+    
+    def end_round(self, bot):
+        self.rounds += 1
+        self.turn = self.heroes.values()
+        self.start_turn(bot)
+    
     @link('!help')
     def help(self, bot, id, args):
         self.msg(bot, 'Help yourself.')
 
+    @link('!list')
+    def list(self, bot, id, args):
+        self.msg(bot, 'The list is empty.')
+
     @link('!join')
     def join(self, bot, id, args):
         nick = id.nick
-        if (id.nick in self.heroes):
+        if (nick in self.heroes):
             name = self.heroes[nick].name
             return self.msg(bot, '%s: you are already playing as %s.',
                 nick, name)
@@ -45,43 +79,45 @@ class Game(object):
             return self.msg(bot, '%s: %s is already being played by %s.',
                 nick, ohero.name, onick)
         
-        self.heroes[nick] = Hero(name)
-        self.turn.append(nick)
+        hero = Hero(name)
+        self.heroes[nick] = hero
         self.msg(bot, '%s joins the game.', name)
+        
+        self.turn.append(hero)
+        if len(self.turn) == 1: self.start_turn(bot)
     
     @link('!retire')
-    def retire(self, bot, id, args):
-        nick = id.nick
-        if nick not in self.heroes: return
-        if nick in self.turn: self.turn.remove(nick)
-        hero = self.heroes[nick]
-        del self.heroes[nick]
+    @hero
+    def retire(self, bot, id, args, hero):
+        if hero in self.turn: self.turn.remove(hero)
+        del self.heroes[id.nick]
         self.msg(bot, '%s retires from the game.', hero.name)
-
-    @link('!explore')
-    def explore(self, bot, id, args):
-        pass
-    
-    @link('!delve')
-    def delve(self, bot, id, args):
-        pass
-
-    @link('!list')
-    def list(self, bot, id, args):
-        pass
     
     @link('!stats')
-    def stats(self, bot, id, args):
-        pass
+    @hero
+    def stats(self, bot, id, args, hero):
+        self.msg(bot, '%s stats', hero.name)
+    
+    @link('!explore')
+    @hero_turn
+    def explore(self, bot, id, args, hero):
+        self.msg(bot, '%s explores the land.', hero.name)
+    
+    @link('!delve')
+    @hero_turn
+    def delve(self, bot, id, args, hero):
+        self.msg(bot, '%s journeys to %s.', hero.name, args)
     
     @link('!train')
-    def train(self, bot, id, args):
-        pass
+    @hero_turn
+    def train(self, bot, id, args, hero):
+        self.msg(bot, '%s sharpens their martial skills.', hero.name)
 
     @link('!research')
-    def research(self, bot, id, args):
-        pass
-    
+    @hero_turn
+    def research(self, bot, id, args, hero):
+        self.msg(bot, '%s studies ancient tomes.', hero.name)
+
 class Dungeon(object):
     __slots__ = 'spec', 'danger', 'mystery', 'level'
     base = conf['dungeon_base']

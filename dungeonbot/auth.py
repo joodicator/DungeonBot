@@ -14,8 +14,8 @@ passed = set()
 # ('RESULT', [True]) if the specified user is authenticated by NickServ as a
 # user listed in admins.txt, or otherwise ('RESULT', [False]).
 def check(bot, id):
-    if id.nick not in admins: return just(False)
-    if id in passed: return just(True)
+    if id.nick not in admins: return just(('RESULT', [False]))
+    if id in passed: return just(('RESULT', [True]))
     mode = Mode()
     def notice(bot, nick, user, host, target, msg):
         if target != bot.nick: return
@@ -33,7 +33,7 @@ def check(bot, id):
 # causing its body to be executed iff the specified user is an admin according
 # to check(bot, id).
 def admin(func):
-    def dfunc(*args, **kwds):
+    def admin_decd(*args, **kwds):
         cargs = inspect.getcallargs(func, *args, **kwds)
         (_, [ok]) = yield check(cargs['bot'], cargs['id'])
         if not ok: return
@@ -43,5 +43,4 @@ def admin(func):
         try:
             while True: last = yield gen.send(last)
         except StopIteration: pass
-    dfunc.__name__ = func.__name__ + '_admin'
-    return dfunc
+    return admin_decd

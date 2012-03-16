@@ -1,5 +1,5 @@
 from importlib import import_module
-from util import LinkSet
+from util import LinkSet, deep_reload
 from auth import admin
 import sys
 import re
@@ -79,8 +79,8 @@ def _reload(bot, id, target, args):
     try:
         mod = sys.modules[args]
         if hasattr(mod, 'uninstall'): mod.uninstall(bot)
-        reload(mod)
+        deep_reload(mod)
         if hasattr(mod, 'install'): mod.install(bot)
+        echo(bot, id, target, 'Done.')
     except KeyError as e:
         echo(bot, id, target, repr(e))
-    echo(bot, id, target, 'Done.')

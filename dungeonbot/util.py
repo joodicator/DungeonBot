@@ -3,7 +3,9 @@ from types import ClassType as classobj
 from collections import namedtuple
 from itertools import *
 from functools import *
+import os.path
 import inspect
+import sys
 import re
 
 ID = namedtuple('ID', ('nick', 'user', 'host'))
@@ -46,6 +48,8 @@ class LinkSet(object):
     
     # When called, a LinkSet produces a decorator that just adds given handler,
     # bound to the given event, to its list.
+    # IMPORTANT: this decorator should be applied after any other decorators,
+    # (i.e. it should be first in the list) so that the right function is bound.
     def __call__(self, event):
         def link(func):
             self.links.append((event, func))
@@ -75,10 +79,10 @@ class LinkSet(object):
         return self, self.install, self.uninstall
 
 # Returns an object which may be yielded in an untwisted event handler to obtain
-# just a list containing the given arguments, without any other effects.
-def just(*args):
+# just the given argument, with no other effects.
+def just(arg):
     def act(source, chain):
-        try: chain.send(args)(source, chain)
+        try: chain.send(arg)(source, chain)
         except StopIteration: pass
     return act
 
@@ -88,3 +92,31 @@ def msign(target, event, *args, **kwds):
     def act(source, chain):
         target.drive(event, *args, **kwds)
     return act
+
+# Returns a decorator causing the return value of the decorated function to be
+# passed to the given function, whose return value is finally returned.
+def after(after):
+    return partial(compose, after)
+
+# Returns the functional composition of the two given functions.
+def compose(after, before):
+    return lambda *a, **k: after(before(*a, **k))
+
+def deep_reload(mod, seen=None):
+    if seen is None: seen = set()
+    if not islocalmodule(mod): return
+    if mod in seen: return
+    seen.add(mod)
+    for key, child in mod.__dict__.iteritems():
+        if not inspect.ismodule(child):
+            child = inspect.getmodule(child)
+            if not child: continue
+        elif hasattr(child, 'install'): continue
+        deep_reload(child, seen)
+    print '! reloading: %s' % mod
+    reload(mod)
+
+def islocalmodule(mod):
+    if not hasattr(mod, '__file__'): return
+    root = os.path.dirname(__file__)
+    return os.path.commonprefix([mod.__file__, root]) == root
