@@ -48,7 +48,7 @@ class hero:
     
     # XP gained when succeeding/failing against a dungeon level with
     # respectively lower, equal or higher difficulty than the hero's skill.
-    fight_xp_win  = 0, 1, 1
+    fight_xp_win  = 0, 1, 2
     fight_xp_lose = 0, 1, 1
     lore_xp_win   = 0, 1, 1
-    lore_xp_lose  = 0, 1, 1
+    lore_xp_lose  = 2, 1, 1
