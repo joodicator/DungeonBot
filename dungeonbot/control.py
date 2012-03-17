@@ -26,7 +26,7 @@ def _msg(bot, id, target, args):
     match = re.match('(?P<whom>\S*)\s*(?P<msg>.*)$', args)
     bot.send_msg(*match.group('whom', 'msg'))
 
-@link('!join')
+@link('!j')
 @admin
 def _join(bot, id, target, args):
     bot.send_cmd('JOIN :%s' % args)
@@ -78,7 +78,10 @@ def _unload(bot, id, target, args):
 def _reload(bot, id, target, args):
     try:
         mod = sys.modules[args]
-        if hasattr(mod, 'uninstall'): mod.uninstall(bot)
+        if hasattr(mod, 'uninstall'):
+            # uninstall may raise a KeyError if the module is not installed.
+            try: mod.uninstall(bot)
+            except KeyError: pass
         deep_reload(mod)
         if hasattr(mod, 'install'): mod.install(bot)
         echo(bot, id, target, 'Done.')

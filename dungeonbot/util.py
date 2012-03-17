@@ -5,6 +5,7 @@ from itertools import *
 from functools import *
 import os.path
 import inspect
+import random
 import sys
 import re
 
@@ -22,21 +23,22 @@ def table(path, name='table_row'):
     with open(path) as file:
         lines = ifilter(re.compile(r'\S').search, file)
         head = namedtuple(name, eval(lines.next()))
-        return imap(head, imap(eval, lines))
+        return map(lambda t: head(*t), imap(eval, lines))
 
-# Executes a file of Python statements, returning the resulting local
-# dictionary, in which any top-level classes have been changed to dicts.
+# Executes a file of Python statements, returning the resulting dictionary, in
+# which any top-level classes have been changed to dicts.
 def fdict(path):
     thedict = dict()
-    execfile(path, dict(), thedict)
-    return {k:cdict(v) for (k,v) in thedict.iteritems()}
+    execfile(path, thedict)
+    return {k:cdict(v) for (k,v) in thedict.iteritems()
+            if not k.startswith('_')}
 
 # If the given object is a class, returns a copy of its dictionary with any
 # __scored__ names removed, otherwise returns the same object unchanged.
 def cdict(obj):
     if not isinstance(obj, (type, classobj)): return obj
     return {k:v for (k,v) in obj.__dict__.iteritems()
-            if not re.match('__.*__', k)}
+            if not k.startswith('_')}
 
 # A LinkSet maintains a list of bindings between events and event handlers,
 # providing some convenience methods for changing and using this list.
@@ -120,3 +122,6 @@ def islocalmodule(mod):
     if not hasattr(mod, '__file__'): return
     root = os.path.dirname(__file__)
     return os.path.commonprefix([mod.__file__, root]) == root
+
+def dice(throws, sides):
+    return sum(random.randint(1, sides) for n in xrange(throws))
