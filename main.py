@@ -11,7 +11,7 @@ conf = {
     'channels': ['#DungeonBot'],
     'plugins':  ['message', 'control', 'dungeon']
 }
-execfile('conf/bot.txt', conf)
+execfile('conf/bot.py', conf)
 
 from amelia import AmeliaBot
 AmeliaBot(conf).mainloop()

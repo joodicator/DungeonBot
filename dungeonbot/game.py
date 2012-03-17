@@ -6,8 +6,8 @@ from functools import *
 import random
 import re
 
-dungeons = table('conf/dungeons.txt', 'dungeon_spec')
-conf = fdict('conf/general.txt')
+dungeons = table('conf/dungeons.py', 'dungeon_spec')
+conf = fdict('conf/general.py')
 
 DANGER  = 1
 MYSTERY = 2
