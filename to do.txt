@@ -1,3 +1,4 @@
 - Experience bonus for completing dungeon.
 - List only completed dungeons.
 - Change "Known Dungeons" to "Dungeons of Danger and Mystery"
+- Add fourth item to to do.txt
