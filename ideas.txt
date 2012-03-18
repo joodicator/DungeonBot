@@ -13,3 +13,5 @@ Possible Ideas to Implement, a suggetion/wishlist
 - Add opening message at beginning of game to outline plot: E.g., "A prophecy of a cosmic conjunction foretells doom from the underworld in thirty days hence. Can mysteries be uncovered to avert the danger?"
 
 - List uncleared dungeons and all hero stats at the end of each round.
+
+- After Game Over, list all dungeons and hero stats, then automatically reload.
