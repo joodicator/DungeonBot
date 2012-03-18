@@ -6,3 +6,4 @@
 - [Aumpa] Maybe needs some kind of warning, for plot.  After the abyss is discovered, a special note might say "An evil within threatens the land." If the abys hasn't been found by somewhere around 20-25, "A dark shadow hangs over the land." But if it has been found, "Threats loom from within the Abyss." appears instead.
 - [Aumpa] The failure message might be. "Evil incarnate emerges from the Abyssal Depths, plunging the land into something something. The end."
 - [Aumpa] Hm. What do you think of automatically listing uncompleted dungeons and player stats at the end of each round? seems it something players will want to know every time anyway.
+- Floor danger/mystery at 1.
