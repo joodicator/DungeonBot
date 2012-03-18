@@ -15,3 +15,5 @@ Possible Ideas to Implement, a suggetion/wishlist
 - List uncleared dungeons and all hero stats at the end of each round.
 
 - After Game Over, list all dungeons and hero stats, then automatically reload.
+
+- Don't allow the same Uncommon or Rare special event to occur two games in a row.
