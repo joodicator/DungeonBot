@@ -105,11 +105,11 @@ class Game(object):
         if self.complete:
             self.msg(bot,
                 'Success! The final dungeon has been cleared.')
-            self.end_game()
+            self.end_game(bot)
         elif self.rounds >= self.conf['doom']:
             self.msg(bot,
                 'Failure! the objective was not completed in time.')
-            self.end_game()
+            self.end_game(bot)
         else:
             self.turn = self.heroes.values()
             self.attacks.clear()
@@ -120,7 +120,7 @@ class Game(object):
         while not dungeon.cleared():
             defeated = 0
             for hero in heroes: defeated |= hero.attack(dungeon)
-            if not defeated & (DANGER | MYSTERY): break
+            if not ((defeated & DANGER) and (defeated & MYSTERY)): break
             dungeon.advance()
             advanced += 1
         
