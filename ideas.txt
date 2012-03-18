@@ -1,0 +1,12 @@
+Possible Ideas to Implement, a suggetion/wishlist
+
+- XP bonus for completed dungeons.
+
+- Game difficulty scales with number of players. Possible approaches: As more players join, dungeon difficulty increases faster, or less bonus xp is awarded at dungeon completion. Probably a little of both would be good. Effect should be subtle, and might only be applied with 4 or more players.
+
+- Round time limit with 2 or more players. e.g., 60 sec per round.
+
+- Random events. E.g., "A renowned swordsman journys through town, offering to teach some techniques to those interested in training with him today." (!train command yields double xp for a day.)
+
+- !explore command dependent on Lore skill. Higher Lore finds larger dungeons.
+
