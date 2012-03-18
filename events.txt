@@ -1,8 +1,8 @@
 Random Event Ideas
 
 
-Common
-------
+Regular
+-------
 
 Event: If more than 20 days have passed, warnings of a threat to the whole land begin to appear.
 Effect: None except warning players of the end of the game.
@@ -11,22 +11,23 @@ Event: Game reaches the last round of action, a warning message appears suggesti
 Effect: None except warning players of the end.
 
 
-Uncommon
---------
+Common
+------
+
+Event: If a dungeon is completed, there's a chance the loot will contain a map or other lead to a new dungeon. 
+Effect: A new random dungeon of equal or greater size than the one cleared is added to known dungeon list.
 
 Event: "A rumor about a nearby dungeon, <dungeon>, is confirmed to be true."
 Effect: A random dungeon (but not the Abyss) is discovered for free.
 
+Uncommon
+--------
 
 Event: "A renowned swordsman journys through town, offering to teach some techniques to those interested in training with him today." 
 Effect: !train command yields double xp for a day. Yields, "<hero> trains with the renowned swordsman, and improves rapidly."
 
 Event:
 Effect: !research command yields double xp for a day.
-
-Event: If a dungeon is completed, there's a small chance the loot will contain a map to a new dungeon. 
-Effect: A new random dungeon one size level greater than the one cleared is added to known dungeon list.
-
 
 Event: Certain dungeons may become restocked, e.g., with kobolds or goblins. E.g., "Goblins have returned and taken over control of their barrow!"
 Effect: The dungeon becomes reset to uncleared.
